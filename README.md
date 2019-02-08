@@ -6,16 +6,19 @@ import random
 Sprite_Scaling = 0.2
 Candy_Scaling = 0.1
 candy_COUNT = 50
+SPRITE_SCALING_STAR = 0.4
 
 SCREEN_WIDTH = 600
 SCREEN_HIGHT = 600
 SCREEN_TITLE = "GAME"
 
-MOVEMENT_SPEED = 5
+MOVEMENT_SPEED = 7
+
 
 TEXTURE_LEFT = 0
 TEXTURE_RIGHT = 1
-
+STAR_SPEED = 1
+window = None
 class Player(arcade.Sprite):
 
     def __init__(self):
@@ -58,6 +61,7 @@ class MyGame(arcade.Window):
 
         self.player_list = None
         self.candy_list = None
+        self.star_list = None
         self.player_sprite = None
         self.score = 0
 
@@ -72,7 +76,10 @@ class MyGame(arcade.Window):
 
         self.player_list = arcade.SpriteList()
         self.candy_list = arcade.SpriteList()
+        self.star_list = arcade.SpriteList()
+
         self.score = 0
+
         self.player_sprite = Player()
         self.player_sprite.center_y = 50
         self.player_sprite.center_x = 50
@@ -92,13 +99,28 @@ class MyGame(arcade.Window):
         arcade.start_render()
         self.player_list.draw()
         self.candy_list.draw()
+        self.star_list.draw()
 
         output = f"Score: {self.score}"
         arcade.draw_text(output, 10, 20, arcade.color.BLACK, 14)
 
+    def on_mouse_press(self, x, y, button, modifiers):
+
+        star = arcade.Sprite(r'C:\Users\Asus\Desktop\Star.png' , SPRITE_SCALING_STAR)
+
+        star.angle = 90
+
+        star.change_y = STAR_SPEED
+
+        star.center_x = self.player_sprite.center_x
+        star.bottom = self.player_sprite.top
+
+        self.star_list.append(star)
+
     def update(self, delta_time):
 
         self.candy_list.update()
+        self.star_list.update()
         self.player_sprite.change_x = 0
         self.player_sprite.change_y = 0
 
@@ -117,6 +139,20 @@ class MyGame(arcade.Window):
         for candy in candys_hit_list:
             candy.kill()
             self.score += 1
+
+        for star in self.star_list:
+
+            hit_list = arcade.check_for_collision_with_list(star, self.candy_list)
+
+            if len(hit_list) > 0:
+                star.kill()
+
+            for candy in hit_list:
+                candy.kill()
+                self.score += 1
+
+            if star.bottom < SCREEN_HIGHT:
+                star.kill()
 
     def on_key_press(self, key, modifiers):
 
